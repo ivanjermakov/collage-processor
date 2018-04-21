@@ -9,11 +9,13 @@ import java.util.Objects;
 
 public class CollageProcessor {
 	
-	public BufferedImage initialImage;
-	public BufferedImage resultImage;
-	public List<BufferedImage> collageImages = new ArrayList<>();
-	public List<BufferedImage> initialImageSectors;
-	public List<Color> initialImageSectorsColor;
+	private BufferedImage initialImage;
+	private BufferedImage resultImage;
+	private List<BufferedImage> collageImages;
+	private List<Color> collageImagesColor;
+	private List<BufferedImage> sectors;
+	private List<Color> sectorsColor;
+	private List<BufferedImage> solidSectors;
 	
 	final int RESULT_HEIGHT = 5000;
 	
@@ -21,6 +23,8 @@ public class CollageProcessor {
 	}
 	
 	public void prepareCollageImages(String directoryPath) {
+		collageImages = new ArrayList<>();
+		
 		final int MAX_HEIGHT = 1000;
 		
 		File directory = new File(directoryPath);
@@ -97,25 +101,27 @@ public class CollageProcessor {
 		
 		setInitialSectorsAverageColor();
 		
-		resultImage = concatenateSectors(rows, cols);
+		setSolidSectors();
+		
+		resultImage = concatenateSectors(sectors, rows, cols);
 		
 		saveImageToFile(resultImage, "images/result/img.jpg");
 	}
 	
-	private BufferedImage concatenateSectors(int rows, int cols) {
+	private BufferedImage concatenateSectors(List<BufferedImage> sectors, int rows, int cols) {
 		BufferedImage result = new BufferedImage(RESULT_HEIGHT * initialImage.getWidth() / initialImage.getHeight(),
 				RESULT_HEIGHT, BufferedImage.TYPE_INT_RGB);
 		
 		Graphics g = result.getGraphics();
 		
-		int sectorWidth = result.getWidth() / rows;
-		int sectorHeight = result.getHeight() / cols;
+		double sectorWidth = result.getWidth() / rows;
+		double sectorHeight = result.getHeight() / cols;
 		
 		int counter = 0;
 		for (int j = 0; j < cols; j++) {
 			for (int i = 0; i < rows; i++) {
 				
-				g.drawImage(initialImageSectors.get(counter), i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight, null);
+				g.drawImage(sectors.get(counter), (int)(i * sectorWidth), (int)(j * sectorHeight), (int)sectorWidth, (int)sectorHeight, null);
 				counter++;
 			}
 		}
@@ -127,7 +133,7 @@ public class CollageProcessor {
 		//clear this directory from previous files
 		clearFolder(new File("images/sectors"));
 		
-		initialImageSectors = new ArrayList<>();
+		sectors = new ArrayList<>();
 		
 		System.out.println("Initial image is " + initialImage.getWidth() + "x" + initialImage.getHeight());
 		
@@ -136,29 +142,46 @@ public class CollageProcessor {
 		
 		for (int j = 0; j < cols; j++) {
 			for (int i = 0; i < rows; i++) {
-				initialImageSectors.add(initialImage.getSubimage(i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight));
+				sectors.add(initialImage.getSubimage(i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight));
 			}
 		}
 		
-		System.out.println(initialImageSectors.size() + " sectors created.");
+		System.out.println(sectors.size() + " sectors created.");
 	}
 	
 	private void setInitialSectorsAverageColor() {
-		initialImageSectorsColor = new ArrayList<>();
+		sectorsColor = new ArrayList<>();
 		
-		for (BufferedImage sector : initialImageSectors) {
-			initialImageSectorsColor.add(averageColor(sector));
+		for (BufferedImage sector : sectors) {
+			sectorsColor.add(averageColor(sector));
 		}
-
-//		for (int i = 0; i < initialImageSectorsColor.size(); i++) {
-//			BufferedImage image = initialImageSectors.get(i);
-//			Graphics2D graphics = image.createGraphics();
-//
-//			graphics.setPaint(initialImageSectorsColor.get(i));
-//			graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
-//
-//			saveImageToFile(image, "images/sectors/" + i + ".jpg");
-//		}
+	}
+	
+	public static BufferedImage copy(BufferedImage source){
+		BufferedImage b = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+		Graphics g = b.getGraphics();
+		g.drawImage(source, 0, 0, null);
+		g.dispose();
+		return b;
+	}
+	
+	private void setSolidSectors() {
+		List<BufferedImage> sectors = new ArrayList<>();
+		for (BufferedImage sector : this.sectors) {
+			sectors.add(copy(sector));
+		}
+		
+		solidSectors = new ArrayList<>();
+		
+		for (int i = 0; i < sectorsColor.size(); i++) {
+			BufferedImage image = sectors.get(i);
+			Graphics2D graphics = image.createGraphics();
+			
+			graphics.setPaint(sectorsColor.get(i));
+			graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+			
+			solidSectors.add(image);
+		}
 	}
 	
 	public static Color averageColor(BufferedImage image) {

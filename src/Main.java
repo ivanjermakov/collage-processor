@@ -10,7 +10,7 @@ public class Main {
 		
 //		collageProcessor.loadCollageImages("images/collage");
 
-		collageProcessor.createCollage(100, 50, true);
+		collageProcessor.createCollage(50, 50, true);
 		
 //		collageProcessor.saveImageToFile(collageProcessor.initialImage, "images/result/img.jpg");
 		
