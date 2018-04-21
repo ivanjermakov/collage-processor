@@ -22,7 +22,7 @@ public class CollageProcessor {
 	private List<Image> collage;
 	
 	public void prepareCollageImages(String directoryPath) {
-		final int MAX_HEIGHT = 1000;
+		final int MAX_HEIGHT = 100;
 		
 		File directory = new File(directoryPath);
 		
@@ -88,6 +88,8 @@ public class CollageProcessor {
 	public void loadInitialImage(String path) {
 		try {
 			initialImage = ImageIO.read(new File(path));
+			
+			initialImage = resizeImage(initialImage, 5000, 5000 * initialImage.getHeight() / initialImage.getWidth());
 			
 			System.out.println("Image \"" + path + "\" loaded successfully.");
 		} catch (IOException e) {
@@ -162,25 +164,27 @@ public class CollageProcessor {
 	}
 	
 	private BufferedImage concatenateSectors(List<Image> sectors, int rows, int cols) {
-		int resultHeight = cols * 20;
+		int resultHeight = initialImage.getHeight();
+		int resultWidth = initialImage.getWidth();
 		
-		BufferedImage result = new BufferedImage(resultHeight * initialImage.getWidth() / initialImage.getHeight(),
-				resultHeight, BufferedImage.TYPE_INT_RGB);
+		System.out.println("Collage size: " + resultWidth + "x" + resultHeight);
+		
+		BufferedImage result = new BufferedImage(resultWidth, resultHeight, BufferedImage.TYPE_INT_RGB);
 		
 		Graphics g = result.getGraphics();
 		
-		int sectorWidth = result.getWidth() / rows;
-		int sectorHeight = result.getHeight() / cols;
+		double sectorWidth = resultWidth / rows;
+		double sectorHeight = resultHeight / cols;
 		
 		int counter = 0;
 		for (int j = 0; j < cols; j++) {
 			for (int i = 0; i < rows; i++) {
-				
-				g.drawImage(sectors.get(counter).image, i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight, null);
+				g.drawImage(sectors.get(counter).image, (int) (i * sectorWidth), (int) (j * sectorHeight), (int) sectorWidth, (int) sectorHeight, null);
 				counter++;
 			}
 		}
 		
+		System.out.println(counter);
 		return result;
 	}
 	
@@ -192,12 +196,13 @@ public class CollageProcessor {
 		
 		System.out.println("Initial image is " + initialImage.getWidth() + "x" + initialImage.getHeight());
 		
-		int sectorWidth = initialImage.getWidth() / rows;
-		int sectorHeight = initialImage.getHeight() / cols;
+		double sectorWidth = initialImage.getWidth() / rows;
+		double sectorHeight = initialImage.getHeight() / cols;
 		
 		for (int j = 0; j < cols; j++) {
 			for (int i = 0; i < rows; i++) {
-				BufferedImage subImage = initialImage.getSubimage(i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight);
+				BufferedImage subImage =
+						initialImage.getSubimage((int) (i * sectorWidth), (int) (j * sectorHeight), (int) sectorWidth, (int) sectorHeight);
 				sectors.add(new Image(subImage, averageColor(subImage)));
 			}
 		}
