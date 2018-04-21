@@ -8,9 +8,11 @@ public class Main {
 		
 		collageProcessor.loadInitialImage("images/init/img.jpg");
 		
-		collageProcessor.loadCollageImages("images/collage");
+//		collageProcessor.loadCollageImages("images/collage");
 
-		collageProcessor.saveImageToFile(collageProcessor.initialImage, "images/result/img.jpg");
+		collageProcessor.createCollage(100, 50, true);
+		
+//		collageProcessor.saveImageToFile(collageProcessor.initialImage, "images/result/img.jpg");
 		
 	}
 }

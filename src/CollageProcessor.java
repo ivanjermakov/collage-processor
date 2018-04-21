@@ -1,5 +1,3 @@
-import javafx.fxml.LoadException;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -12,16 +10,20 @@ import java.util.Objects;
 public class CollageProcessor {
 	
 	public BufferedImage initialImage;
-	
+	public BufferedImage resultImage;
 	public List<BufferedImage> collageImages = new ArrayList<>();
+	public List<BufferedImage> initialImageSectors;
+	public List<Color> initialImageSectorsColor;
+	
+	final int RESULT_HEIGHT = 5000;
 	
 	public CollageProcessor() {
 	}
 	
-	public void prepareCollageImages(String DIRECTORY_PATH) {
+	public void prepareCollageImages(String directoryPath) {
 		final int MAX_HEIGHT = 1000;
 		
-		File directory = new File(DIRECTORY_PATH);
+		File directory = new File(directoryPath);
 		
 		if (directory.isDirectory()) { // make sure it's a directory
 			for (final File f : Objects.requireNonNull(directory.listFiles())) {
@@ -45,22 +47,22 @@ public class CollageProcessor {
 				}
 			}
 		} else {
-			System.out.println(DIRECTORY_PATH + " is not a directory");
+			System.out.println(directoryPath + " is not a directory");
 		}
 	}
 	
-	public void loadInitialImage(String PATH) {
+	public void loadInitialImage(String path) {
 		try {
-			initialImage = ImageIO.read(new File(PATH));
+			initialImage = ImageIO.read(new File(path));
 			
-			System.out.println("Image \"" + PATH + "\" loaded successfully.");
+			System.out.println("Image \"" + path + "\" loaded successfully.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void loadCollageImages(String DIRECTORY_PATH) {
-		File directory = new File(DIRECTORY_PATH);
+	public void loadCollageImages(String DirectoryPath) {
+		File directory = new File(DirectoryPath);
 		
 		if (directory.isDirectory()) { // make sure it's a directory
 			for (final File file : Objects.requireNonNull(directory.listFiles())) {
@@ -70,30 +72,132 @@ public class CollageProcessor {
 					image = ImageIO.read(file);
 					
 					collageImages.add(image);
-					
-					System.out.println("Image \"" + file.getName() + "\" successfully load.");
+
+//					System.out.println("Image \"" + file.getName() + "\" successfully load.");
 					
 				} catch (final IOException e) {
 					e.printStackTrace();
 				}
 			}
 		}
+		
+		System.out.println("Collage images successfully load.");
 	}
 	
-	public void saveImageToFile(BufferedImage image, String PATH) {
-		File outputFile = new File(PATH);
+	public void createCollage(int rows, int cols, boolean allowRepetitions) {
+		if (initialImage == null || collageImages == null) {
+			throw new IllegalArgumentException("Init image wasn't initialized.");
+		}
+		
+		if (!allowRepetitions && collageImages.size() < cols * rows) {
+			throw new IllegalArgumentException("Not enough collage images.");
+		}
+		
+		setInitialImageSectors(rows, cols);
+		
+		setInitialSectorsAverageColor();
+		
+		resultImage = concatenateSectors(rows, cols);
+		
+		saveImageToFile(resultImage, "images/result/img.jpg");
+	}
+	
+	private BufferedImage concatenateSectors(int rows, int cols) {
+		BufferedImage result = new BufferedImage(RESULT_HEIGHT * initialImage.getWidth() / initialImage.getHeight(),
+				RESULT_HEIGHT, BufferedImage.TYPE_INT_RGB);
+		
+		Graphics g = result.getGraphics();
+		
+		int sectorWidth = result.getWidth() / rows;
+		int sectorHeight = result.getHeight() / cols;
+		
+		int counter = 0;
+		for (int j = 0; j < cols; j++) {
+			for (int i = 0; i < rows; i++) {
+				
+				g.drawImage(initialImageSectors.get(counter), i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight, null);
+				counter++;
+			}
+		}
+		
+		return result;
+	}
+	
+	private void setInitialImageSectors(int rows, int cols) {
+		//clear this directory from previous files
+		clearFolder(new File("images/sectors"));
+		
+		initialImageSectors = new ArrayList<>();
+		
+		System.out.println("Initial image is " + initialImage.getWidth() + "x" + initialImage.getHeight());
+		
+		int sectorWidth = initialImage.getWidth() / rows;
+		int sectorHeight = initialImage.getHeight() / cols;
+		
+		for (int j = 0; j < cols; j++) {
+			for (int i = 0; i < rows; i++) {
+				initialImageSectors.add(initialImage.getSubimage(i * sectorWidth, j * sectorHeight, sectorWidth, sectorHeight));
+			}
+		}
+		
+		System.out.println(initialImageSectors.size() + " sectors created.");
+	}
+	
+	private void setInitialSectorsAverageColor() {
+		initialImageSectorsColor = new ArrayList<>();
+		
+		for (BufferedImage sector : initialImageSectors) {
+			initialImageSectorsColor.add(averageColor(sector));
+		}
+
+//		for (int i = 0; i < initialImageSectorsColor.size(); i++) {
+//			BufferedImage image = initialImageSectors.get(i);
+//			Graphics2D graphics = image.createGraphics();
+//
+//			graphics.setPaint(initialImageSectorsColor.get(i));
+//			graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+//
+//			saveImageToFile(image, "images/sectors/" + i + ".jpg");
+//		}
+	}
+	
+	public static Color averageColor(BufferedImage image) {
+		long sumRed = 0;
+		long sumGreen = 0;
+		long sumBlue = 0;
+		
+		for (int x = 0; x < image.getWidth(); x++) {
+			for (int y = 0; y < image.getHeight(); y++) {
+				Color pixel = new Color(image.getRGB(x, y));
+				sumRed += pixel.getRed();
+				sumGreen += pixel.getGreen();
+				sumBlue += pixel.getBlue();
+			}
+		}
+		
+		long amountOfPixels = image.getWidth() * image.getHeight();
+		
+		int red = (int) (sumRed / amountOfPixels);
+		int green = (int) (sumGreen / amountOfPixels);
+		int blue = (int) (sumBlue / amountOfPixels);
+		
+		return new Color(red, green, blue);
+	}
+	
+	private void saveImageToFile(BufferedImage image, String path) {
+		File outputFile = new File(path);
 		try {
 			ImageIO.write(image, "jpg", outputFile);
-			
-			System.out.println("Image \"" + PATH + "\" saved successfully.");
+
+//			System.out.println("Image \"" + path + "\" saved successfully.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private static BufferedImage resizeImage(BufferedImage image, int areaWidth, int areaHeight) {
-		float scaleX = (float) areaWidth / image.getWidth();
-		float scaleY = (float) areaHeight / image.getHeight();
+	private static BufferedImage resizeImage(BufferedImage image, int width, int height) {
+		float scaleX = (float) width / image.getWidth();
+		float scaleY = (float) height / image.getHeight();
 		float scale = Math.min(scaleX, scaleY);
 		int w = Math.round(image.getWidth() * scale);
 		int h = Math.round(image.getHeight() * scale);
@@ -128,6 +232,15 @@ public class CollageProcessor {
 			g2.drawImage(image, 0, 0, w, h, null);
 			g2.dispose();
 			return resized;
+		}
+	}
+	
+	private static void clearFolder(File folder) {
+		File[] files = folder.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				file.delete();
+			}
 		}
 	}
 }
