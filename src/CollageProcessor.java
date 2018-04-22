@@ -1,8 +1,8 @@
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +32,9 @@ public class CollageProcessor {
 				
 				try {
 					image = ImageIO.read(f);
+					if (image == null) break;
 					
+					System.out.println(f.getName());
 					System.out.println(image.getHeight() + " " + image.getWidth());
 					if (image.getHeight() > MAX_HEIGHT) {
 						image = resizeImage(image, MAX_HEIGHT * image.getWidth() / image.getHeight(), MAX_HEIGHT);
@@ -64,7 +66,9 @@ public class CollageProcessor {
 				try {
 					image = ImageIO.read(file);
 					
-					images.add(new Image(image, averageColor(image)));
+					if (image != null) {
+						images.add(new Image(image, averageColor(image)));
+					}
 					
 				} catch (final IOException e) {
 					e.printStackTrace();
@@ -82,6 +86,44 @@ public class CollageProcessor {
 		
 		for (int i = 0; i < images.size(); i++) {
 			saveImageToFile(images.get(i).image, directoryPath + "/" + i + ".jpg", Format.JPG);
+		}
+		
+		System.out.println("Images sorted successfully.");
+	}
+	
+	public void unloadCollageImagesAsBinary(String binaryFilePath) {
+		if (images == null) throw new IllegalArgumentException("No collage images to unload");
+		
+		List<byte[]> binaryImages = new ArrayList<>();
+		
+		for (Image image : images) {
+			binaryImages.add(imageToByteArray(image.image));
+		}
+		
+		try {
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(binaryFilePath));
+			out.writeObject(binaryImages);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public void loadCollageImagesBinary(String binaryFilePath) {
+		images = new ArrayList<>();
+		
+		List<byte[]> binaryImages = new ArrayList<>();
+		
+		try {
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(binaryFilePath));
+			binaryImages = (List<byte[]>) in.readObject();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		for (byte[] binaryImage : binaryImages) {
+			BufferedImage image = byteArrayToImage(binaryImage);
+			images.add(new Image(image, averageColor(image)));
 		}
 	}
 	
@@ -109,7 +151,9 @@ public class CollageProcessor {
 				try {
 					image = ImageIO.read(file);
 					
-					images.add(new Image(image, averageColor(image)));
+					if (image != null) {
+						images.add(new Image(image, averageColor(image)));
+					}
 
 //					System.out.println("Image \"" + file.getName() + "\" successfully load.");
 					
@@ -140,6 +184,14 @@ public class CollageProcessor {
 		saveImageToFile(resultImage, path, Format.PNG);
 		
 		System.out.println("Collage created successfully.");
+	}
+	
+	public void createCollageFromImages(String path) {
+		if (images == null) throw new InvalidParameterException("Load images first");
+		
+		int rows = (int) Math.sqrt(images.size());
+		
+		saveImageToFile(concatenateSectors(images, rows, rows), path, Format.PNG);
 	}
 	
 	
@@ -180,7 +232,6 @@ public class CollageProcessor {
 			}
 		}
 		
-		System.out.println(counter);
 		return result;
 	}
 	
@@ -311,6 +362,26 @@ public class CollageProcessor {
 			for (File file : files) {
 				file.delete();
 			}
+		}
+	}
+	
+	private byte[] imageToByteArray(BufferedImage image) {
+		ByteArrayOutputStream bAOS = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(image, "jpg", bAOS);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return bAOS.toByteArray();
+	}
+	
+	private BufferedImage byteArrayToImage(byte[] imageData) {
+		ByteArrayInputStream bAIS = new ByteArrayInputStream(imageData);
+		try {
+			return ImageIO.read(bAIS);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
