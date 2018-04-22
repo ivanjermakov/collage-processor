@@ -122,14 +122,9 @@ public class CollageProcessor {
 		System.out.println("Collage images successfully load.");
 	}
 	
-	//TODO: deal with repetitions
-	public void createCollage(String path, int rows, int cols, boolean allowRepetitions) {
+	public void createCollage(String path, int rows, int cols) {
 		if (initialImage == null || images == null) {
 			throw new IllegalArgumentException("Init image wasn't initialized.");
-		}
-		
-		if (!allowRepetitions && images.size() < cols * rows) {
-			throw new IllegalArgumentException("Not enough collage images.");
 		}
 		
 		setInitialImageSectors(rows, cols);
@@ -146,6 +141,7 @@ public class CollageProcessor {
 		
 		System.out.println("Collage created successfully.");
 	}
+	
 	
 	private Image getSimilarTo(Image sector) {
 		Image similar = images.get(images.size() - 1);
