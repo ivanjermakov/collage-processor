@@ -1,3 +1,5 @@
+package com.gmail.ivanjermakov1.util;
+
 import java.util.Date;
 
 public class Stopwatch {
@@ -13,7 +15,7 @@ public class Stopwatch {
 	Status status = Status.SLEEP;
 	
 	public void start() {
-		if (status != Status.SLEEP) throw new IllegalStateException("Stopwatch is already started");
+		if (status != Status.SLEEP) throw new IllegalStateException("com.gmail.ivanjermakov1.utilgmail.ivanjermakov1.Stopwatch is already started");
 		
 		status = Status.STARTED;
 		start = new Date();

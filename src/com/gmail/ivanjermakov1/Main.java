@@ -1,3 +1,5 @@
+package com.gmail.ivanjermakov1;
+
 public class Main {
 	
 	public static void main(String[] args) {
@@ -6,6 +8,6 @@ public class Main {
 
 		collageProcessor.loadCollageImages("images/collage");
 		collageProcessor.loadInitialImage("images/init/1.jpg");
-		collageProcessor.createCollage("images/result/1.png", 500, 300);
+		collageProcessor.createCollage("images/result/1.png", 400, 600);
 	}
 }
