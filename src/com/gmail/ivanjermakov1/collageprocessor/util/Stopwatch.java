@@ -1,4 +1,4 @@
-package com.gmail.ivanjermakov1.util;
+package com.gmail.ivanjermakov1.collageprocessor.util;
 
 import java.util.Date;
 

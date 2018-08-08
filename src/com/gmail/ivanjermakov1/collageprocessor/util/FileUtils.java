@@ -1,6 +1,6 @@
-package com.gmail.ivanjermakov1.util;
+package com.gmail.ivanjermakov1.collageprocessor.util;
 
-import com.gmail.ivanjermakov1.ImageExtension;
+import com.gmail.ivanjermakov1.collageprocessor.ImageExtension;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

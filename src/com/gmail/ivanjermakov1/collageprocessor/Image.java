@@ -1,8 +1,7 @@
-package com.gmail.ivanjermakov1;
+package com.gmail.ivanjermakov1.collageprocessor;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.Serializable;
 
 public class Image {
 	

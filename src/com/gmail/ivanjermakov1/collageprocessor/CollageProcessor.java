@@ -1,7 +1,7 @@
-package com.gmail.ivanjermakov1;
+package com.gmail.ivanjermakov1.collageprocessor;
 
-import com.gmail.ivanjermakov1.util.FileUtils;
-import com.gmail.ivanjermakov1.util.ImageUtils;
+import com.gmail.ivanjermakov1.collageprocessor.util.FileUtils;
+import com.gmail.ivanjermakov1.collageprocessor.util.ImageUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -14,11 +14,11 @@ import java.util.Objects;
 
 public class CollageProcessor {
 	
-	private List<Image> images;
+	private List<com.gmail.ivanjermakov1.collageprocessor.Image> images;
 	private BufferedImage initialImage;
 	private BufferedImage resultImage;
-	private List<Image> sectors;
-	private List<Image> collage;
+	private List<com.gmail.ivanjermakov1.collageprocessor.Image> sectors;
+	private List<com.gmail.ivanjermakov1.collageprocessor.Image> collage;
 	
 	public void prepareCollageImages(String directoryPath) {
 		final int MAX_HEIGHT = 100;
@@ -41,7 +41,7 @@ public class CollageProcessor {
 						File outputFile = new File(f.getPath());
 						ImageIO.write(image, "jpg", outputFile);
 						
-						System.out.println("com.gmail.ivanjermakov1.Image \"" + f.getPath() + "\" resized successfully.");
+						System.out.println("Image \"" + f.getPath() + "\" resized successfully.");
 					}
 					
 				} catch (final IOException e) {
@@ -54,7 +54,7 @@ public class CollageProcessor {
 	}
 	
 	public void sortImagesByRGB(String directoryPath) {
-		List<Image> images = new ArrayList<>();
+		List<com.gmail.ivanjermakov1.collageprocessor.Image> images = new ArrayList<>();
 		
 		File directory = new File(directoryPath);
 		
@@ -66,7 +66,7 @@ public class CollageProcessor {
 					image = ImageIO.read(file);
 					
 					if (image != null) {
-						images.add(new Image(image, Image.averageColor(image)));
+						images.add(new com.gmail.ivanjermakov1.collageprocessor.Image(image, com.gmail.ivanjermakov1.collageprocessor.Image.averageColor(image)));
 					}
 					
 				} catch (final IOException e) {
@@ -95,7 +95,7 @@ public class CollageProcessor {
 		
 		List<byte[]> binaryImages = new ArrayList<>();
 		
-		for (Image image : images) {
+		for (com.gmail.ivanjermakov1.collageprocessor.Image image : images) {
 			binaryImages.add(ImageUtils.imageToByteArray(image.getImage()));
 		}
 		
@@ -122,7 +122,7 @@ public class CollageProcessor {
 		
 		for (byte[] binaryImage : binaryImages) {
 			BufferedImage image = ImageUtils.byteArrayToImage(binaryImage);
-			images.add(new Image(image, Image.averageColor(image)));
+			images.add(new com.gmail.ivanjermakov1.collageprocessor.Image(image, com.gmail.ivanjermakov1.collageprocessor.Image.averageColor(image)));
 		}
 	}
 	
@@ -132,7 +132,7 @@ public class CollageProcessor {
 			
 			initialImage = ImageUtils.resizeImage(initialImage, 5000, 5000 * initialImage.getHeight() / initialImage.getWidth());
 			
-			System.out.println("com.gmail.ivanjermakov1.Image \"" + path + "\" loaded successfully.");
+			System.out.println("Image \"" + path + "\" loaded successfully.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -151,10 +151,10 @@ public class CollageProcessor {
 					image = ImageIO.read(file);
 					
 					if (image != null) {
-						images.add(new Image(image, Image.averageColor(image)));
+						images.add(new com.gmail.ivanjermakov1.collageprocessor.Image(image, com.gmail.ivanjermakov1.collageprocessor.Image.averageColor(image)));
 					}
 
-//					System.out.println("com.gmail.ivanjermakov1.Image \"" + file.getName() + "\" successfully load.");
+//					System.out.println("Image \"" + file.getName() + "\" successfully load.");
 				
 				} catch (final IOException e) {
 					e.printStackTrace();
@@ -176,7 +176,7 @@ public class CollageProcessor {
 		
 		collage = new ArrayList<>();
 		
-		for (Image sector : sectors) {
+		for (com.gmail.ivanjermakov1.collageprocessor.Image sector : sectors) {
 			collage.add(getSimilarTo(sector));
 		}
 		
@@ -197,11 +197,10 @@ public class CollageProcessor {
 		FileUtils.saveImageToFile(concatenateSectors(images, rows, rows), path, ImageExtension.PNG);
 	}
 	
-	
-	private Image getSimilarTo(Image sector) {
-		Image similar = images.get(images.size() - 1);
+	private com.gmail.ivanjermakov1.collageprocessor.Image getSimilarTo(com.gmail.ivanjermakov1.collageprocessor.Image sector) {
+		com.gmail.ivanjermakov1.collageprocessor.Image similar = images.get(images.size() - 1);
 		
-		for (Image image : images) {
+		for (com.gmail.ivanjermakov1.collageprocessor.Image image : images) {
 			if (ImageUtils.getCloseness(image.getAverageColor(), sector.getAverageColor()) < ImageUtils.getCloseness(similar.getAverageColor(), sector.getAverageColor())) {
 				similar = image;
 			}
@@ -225,14 +224,14 @@ public class CollageProcessor {
 			for (int i = 0; i < rows; i++) {
 				BufferedImage subImage =
 						initialImage.getSubimage((int) (i * sectorWidth), (int) (j * sectorHeight), (int) sectorWidth, (int) sectorHeight);
-				sectors.add(new Image(subImage, Image.averageColor(subImage)));
+				sectors.add(new com.gmail.ivanjermakov1.collageprocessor.Image(subImage, com.gmail.ivanjermakov1.collageprocessor.Image.averageColor(subImage)));
 			}
 		}
 		
 		System.out.println(sectors.size() + " sectors created.");
 	}
 	
-	private BufferedImage concatenateSectors(BufferedImage image, List<Image> sectors, int rows, int cols) {
+	private BufferedImage concatenateSectors(BufferedImage image, List<com.gmail.ivanjermakov1.collageprocessor.Image> sectors, int rows, int cols) {
 		int resultHeight = image.getHeight();
 		int resultWidth = image.getWidth();
 		
